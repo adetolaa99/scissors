@@ -1,0 +1,44 @@
+<%- include('layout', { body: `
+<div class="container">
+  <section class="url-shortener">
+    <h2>Shorten Your URL</h2>
+    <form id="shorten-form">
+      <input type="url" id="long-url" name="longURL" placeholder="Enter your long URL" required>
+      <input type="text" id="custom-domain" name="customDomain" placeholder="Custom domain (optional)">
+      <button type="submit">Shorten</button>
+    </form>
+    <div id="result" class="result"></div>
+  </section>
+
+  <section class="qr-generator">
+    <h2>Generate QR Code</h2>
+    <form id="qr-form">
+      <input type="url" id="short-url" name="shortURL" placeholder="Enter your shortened URL" required>
+      <button type="submit">Generate QR Code</button>
+    </form>
+    <div id="qr-result" class="result"></div>
+  </section>
+
+  <section class="auth hidden">
+    <h2>Sign Up / Log In</h2>
+    <div class="auth-forms">
+      <a href="/signup" class="auth-link">Sign Up</a>
+      <a href="/login" class="auth-link">Log In</a>
+    </div>
+  </section>
+
+  <section class="user-data hidden">
+    <h2>Your Link History</h2>
+    <div id="link-history" class="result"></div>
+
+    <h2>URL Analytics</h2>
+    <form id="analytics-form">
+      <input type="text" id="analytics-shortcode" name="shortCode" placeholder="Enter short code" required>
+      <button type="submit">Get Analytics</button>
+    </form>
+    <div id="analytics-result" class="result"></div>
+  </section>
+</div>
+
+<div id="notification" class="notification hidden"></div>
+` }) %>

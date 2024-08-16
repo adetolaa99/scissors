@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log In - Scissor</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Scissor</h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/signup">Sign Up</a>
+        <a href="/login">Log In</a>
+      </nav>
+    </header>
+    <main>
+      <div class="container">
+        <section class="auth">
+          <div class="form-container">
+            <h2>Log In</h2>
+            <form action="/login" method="POST">
+              <input type="email" name="email" placeholder="Email" required />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+              />
+              <button type="submit">Log In</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer>
+      <p>&copy; 2024 Scissor. All rights reserved.</p>
+    </footer>
+    <script src="/js/main.js"></script>
+  </body>
+</html>
