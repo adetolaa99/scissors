@@ -17,17 +17,12 @@ router.get(
   apiLimiter,
   URLController.getURLAnalytics
 );
-/*router.get(
+
+router.get(
   "/history",
   isAuthenticated,
   apiLimiter,
   URLController.getLinkHistory
 );
-*/
-//router.get("/history", apiLimiter, URLController.getLinkHistory);
-router.get("/history", apiLimiter, (req, res, next) => {
-  console.log("Hitting /api/history route");
-  URLController.getLinkHistory(req, res).catch(next);
-});
 
 export default router;

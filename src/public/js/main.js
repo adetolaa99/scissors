@@ -1,149 +1,218 @@
-// Utility function for showing notifications
-function showNotification(message, type) {
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  updateUIForAuthState(!!token);
+
+  // Shorten URL form
+  const shortenForm = document.getElementById("shorten-form");
+  if (shortenForm) {
+    shortenForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const longURL = document.getElementById("long-url").value;
+      const customDomain = document.getElementById("custom-domain").value;
+      try {
+        const response = await fetch("/api/shorten", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ longURL, customDomain }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById("result").innerHTML =
+            `Short URL: <a href="${data.shortURL}" target="_blank">${data.shortURL}</a>`;
+        } else {
+          showNotification(data.message || "Error shortening URL");
+        }
+      } catch (error) {
+        showNotification("Error shortening URL");
+      }
+    });
+  }
+
+  // QR Code generation form
+  const qrForm = document.getElementById("qr-form");
+  if (qrForm) {
+    qrForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const shortURL = document.getElementById("short-url").value;
+      try {
+        const response = await fetch("/api/qr", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ shortURL }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById("qr-result").innerHTML =
+            `<img src="${data.qrCode}" alt="QR Code">`;
+        } else {
+          showNotification(data.message || "Error generating QR code");
+        }
+      } catch (error) {
+        showNotification("Error generating QR code");
+      }
+    });
+  }
+
+  // Sign up form
+  const signupForm = document.getElementById("signup-form");
+  if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = signupForm.username.value;
+      const password = signupForm.password.value;
+      try {
+        const response = await fetch("/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          showNotification("Sign up successful. Please log in.");
+          window.location.href = "/login";
+        } else {
+          showNotification(data.message || "Error signing up");
+        }
+      } catch (error) {
+        showNotification("Error signing up");
+      }
+    });
+  }
+
+  // Login form
+  const loginForm = document.getElementById("login-form");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = loginForm.username.value;
+      const password = loginForm.password.value;
+      try {
+        const response = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.setItem("token", data.token);
+          showNotification("Logged in successfully");
+          window.location.href = "/";
+        } else {
+          showNotification(data.message || "Error logging in");
+        }
+      } catch (error) {
+        showNotification("Error logging in");
+      }
+    });
+  }
+
+  // Logout
+  const logoutLink = document.getElementById("logout-link");
+  if (logoutLink) {
+    logoutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      logout();
+    });
+  }
+
+  // Get link history
+  if (token) {
+    getLinkHistory();
+  }
+
+  // URL Analytics form
+  const analyticsForm = document.getElementById("analytics-form");
+  if (analyticsForm) {
+    analyticsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const shortCode = document.getElementById("analytics-shortcode").value;
+      try {
+        const response = await fetch(`/api/analytics/${shortCode}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById("analytics-result").innerHTML = `
+            <p>Long URL: ${data.longURL}</p>
+            <p>Short URL: ${data.shortURL}</p>
+            <p>Clicks: ${data.clicks}</p>
+            <p>Created At: ${new Date(data.createdAt).toLocaleString()}</p>
+          `;
+        } else {
+          showNotification(data.message || "Error fetching analytics");
+        }
+      } catch (error) {
+        showNotification("Error fetching analytics");
+      }
+    });
+  }
+});
+
+function showNotification(message) {
   const notification = document.getElementById("notification");
   notification.textContent = message;
-  notification.classList.remove("hidden", "success", "error");
-  notification.classList.add(type, "show");
+  notification.classList.remove("hidden");
   setTimeout(() => {
-    notification.classList.remove("show");
-    setTimeout(() => notification.classList.add("hidden"), 300);
+    notification.classList.add("hidden");
   }, 3000);
 }
 
-// Function to handle form submission
-async function handleFormSubmit(formId, url, successMessage) {
-  const form = document.getElementById(formId);
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+function updateUIForAuthState(isLoggedIn) {
+  const userDataSection = document.getElementById("user-data-section");
+  const signupNav = document.getElementById("signup-nav");
+  const loginNav = document.getElementById("login-nav");
+  const logoutNav = document.getElementById("logout-nav");
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      showNotification(successMessage, "success");
-      return result;
-    } catch (error) {
-      console.error("Error:", error);
-      showNotification(`Error: ${error.message}`, "error");
-    }
-  });
+  if (isLoggedIn) {
+    userDataSection.classList.remove("hidden");
+    signupNav.classList.add("hidden");
+    loginNav.classList.add("hidden");
+    logoutNav.classList.remove("hidden");
+  } else {
+    userDataSection.classList.add("hidden");
+    signupNav.classList.remove("hidden");
+    loginNav.classList.remove("hidden");
+    logoutNav.classList.add("hidden");
+  }
 }
 
-// URL Shortening
-handleFormSubmit(
-  "shorten-form",
-  "/api/shorten",
-  "URL shortened successfully"
-).then((result) => {
-  if (result && result.shortURL) {
-    document.getElementById("result").innerHTML =
-      `Shortened URL: <a href="${result.shortURL}" target="_blank">${result.shortURL}</a>`;
-  }
-});
-
-// QR Code Generation
-handleFormSubmit(
-  "qr-form",
-  "/api/qrcode",
-  "QR Code generated successfully"
-).then((result) => {
-  if (result && result.qrCode) {
-    document.getElementById("qr-result").innerHTML =
-      `<img src="${result.qrCode}" alt="QR Code">`;
-  }
-});
-
-// User Sign Up
-handleFormSubmit("signup-form", "/auth/signup", "Signed up successfully");
-
-// User Login
-handleFormSubmit("login-form", "/auth/login", "Logged in successfully").then(
-  (result) => {
-    if (result) {
-      document.querySelector(".auth").classList.add("hidden");
-      document.querySelector(".user-data").classList.remove("hidden");
-      document.getElementById("logout-button").classList.remove("hidden");
-      fetchLinkHistory();
-    }
-  }
-);
-
-// User Logout
-document.getElementById("logout-button").addEventListener("click", async () => {
+async function getLinkHistory() {
   try {
-    const response = await fetch("/auth/logout");
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    document.querySelector(".auth").classList.remove("hidden");
-    document.querySelector(".user-data").classList.add("hidden");
-    document.getElementById("logout-button").classList.add("hidden");
-    showNotification("Logged out successfully", "success");
-  } catch (error) {
-    console.error("Error:", error);
-    showNotification(`Error logging out: ${error.message}`, "error");
-  }
-});
-
-// Fetch Link History
-async function fetchLinkHistory() {
-  try {
-    const response = await fetch("/api/history");
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    const response = await fetch("/api/history", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
     const data = await response.json();
-    const historyHtml = data
-      .map(
-        (link) => `
-            <p>Short URL: <a href="${link.shortURL}" target="_blank">${link.shortURL}</a>, Clicks: ${link.clicks}</p>
-        `
-      )
-      .join("");
-    document.getElementById("link-history").innerHTML =
-      historyHtml || "No link history available.";
+    if (response.ok) {
+      const historyHTML = data
+        .map(
+          (link) => `
+        <div>
+          <p>Short URL: <a href="${link.shortURL}" target="_blank">${link.shortURL}</a></p>
+          <p>Long URL: ${link.longURL}</p>
+          <p>Clicks: ${link.clicks}</p>
+          <p>Created: ${new Date(link.createdAt).toLocaleString()}</p>
+        </div>
+      `
+        )
+        .join("");
+      document.getElementById("link-history").innerHTML = historyHTML;
+    } else {
+      showNotification(data.message || "Error fetching link history");
+    }
   } catch (error) {
-    console.error("Error fetching link history:", error);
-    document.getElementById("link-history").innerHTML =
-      "Error fetching link history.";
-    showNotification(`Error fetching link history: ${error.message}`, "error");
+    showNotification("Error fetching link history");
   }
 }
 
-// URL Analytics
-document
-  .getElementById("analytics-form")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const shortCode = document.getElementById("analytics-shortcode").value;
-
-    try {
-      const response = await fetch(`/api/analytics/${shortCode}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      document.getElementById("analytics-result").innerHTML = `
-            <p>Long URL: ${data.longURL}</p>
-            <p>Short URL: <a href="${data.shortURL}" target="_blank">${data.shortURL}</a></p>
-            <p>Clicks: ${data.clicks}</p>
-            <p>Created At: ${new Date(data.createdAt).toLocaleString()}</p>
-        `;
-      showNotification("Analytics fetched successfully", "success");
-    } catch (error) {
-      console.error("Error:", error);
-      document.getElementById("analytics-result").innerHTML =
-        "Error fetching analytics.";
-      showNotification(`Error fetching analytics: ${error.message}`, "error");
-    }
-  });
+function logout() {
+  localStorage.removeItem("token");
+  updateUIForAuthState(false);
+  showNotification("Logged out successfully");
+  window.location.href = "/";
+}

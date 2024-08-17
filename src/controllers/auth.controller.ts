@@ -1,23 +1,21 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { User } from "../models/user.model";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import passport from "passport";
 
 export class AuthController {
   static async signup(req: Request, res: Response) {
     const { username, password } = req.body;
 
     try {
-      // Check if user already exists
       const existingUser = await User.findOne({ username });
       if (existingUser) {
         return res.status(400).json({ message: "User already exists" });
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create new user
       const user = new User({ username, password: hashedPassword });
       await user.save();
 
@@ -28,37 +26,36 @@ export class AuthController {
         .json({ message: "Server error", error: (error as Error).message });
     }
   }
-
-  static async login(req: Request, res: Response) {
-    const { username, password } = req.body;
-
-    try {
-      // Check if user exists
-      const user = await User.findOne({ username });
+  static login(req: Request, res: Response, next: NextFunction) {
+    passport.authenticate("local", (err: Error, user: any, info: any) => {
+      if (err) {
+        return next(err);
+      }
       if (!user) {
         return res
           .status(400)
-          .json({ message: "Invalid username or password" });
+          .json({ message: info.message || "Invalid username or password" });
       }
-
-      // Check password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res
-          .status(400)
-          .json({ message: "Invalid username or password" });
-      }
-
-      // Generate JWT token
-      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
-        expiresIn: "1h",
+      req.logIn(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        // Generate JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
+          expiresIn: "1h",
+        });
+        return res.json({ message: "Logged in successfully", token });
       });
-
-      res.json({ message: "Logged in successfully", token });
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Server error", error: (error as Error).message });
-    }
+    })(req, res, next);
+  }
+  static logout(req: Request, res: Response) {
+    res.json({ message: "Logged out successfully" });
+  }
+  static refreshToken(req: Request, res: Response) {
+    const { userId } = req.user as { userId: string };
+    const newToken = jwt.sign({ userId }, process.env.JWT_SECRET!, {
+      expiresIn: "1h",
+    });
+    res.json({ token: newToken });
   }
 }

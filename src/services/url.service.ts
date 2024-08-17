@@ -1,13 +1,22 @@
 import validator from "validator";
-import { URLModel } from "../models/url.model";
+import { URLModel, IURL } from "../models/url.model";
 import { redisClient } from "../config/redis";
 import QRCode from "qrcode";
 import crypto from "crypto";
+import { Document } from "mongoose";
 
+// Interface for the return type
+interface URLHistory {
+  longURL: string;
+  shortURL: string;
+  clicks: number;
+  createdAt: Date;
+}
 export class URLService {
   static async shortenURL(
     longURL: string,
-    customDomain?: string
+    customDomain?: string,
+    userId?: string
   ): Promise<string> {
     if (!validator.isURL(longURL)) {
       throw new Error("Invalid URL");
@@ -34,6 +43,7 @@ export class URLService {
       longURL,
       shortCode,
       customDomain,
+      userId,
     });
 
     await urlDoc.save();
@@ -71,14 +81,17 @@ export class URLService {
     }
   }
 
-  static async getURLAnalytics(shortCode: string): Promise<{
+  static async getURLAnalytics(
+    shortCode: string,
+    userId: string
+  ): Promise<{
     longURL: string;
     shortURL: string;
     clicks: number;
     createdAt: Date;
   }> {
-    const urlDoc = await URLModel.findOne({ shortCode });
-    if (!urlDoc) throw new Error("URL not found");
+    const urlDoc = await URLModel.findOne({ shortCode, userId });
+    if (!urlDoc) throw new Error("URL not found or unauthorized");
 
     return {
       longURL: urlDoc.longURL,
@@ -88,27 +101,22 @@ export class URLService {
     };
   }
 
-  static async getLinkHistory(): Promise<
-    Array<{
-      longURL: string;
-      shortURL: string;
-      clicks: number;
-      createdAt: Date;
-    }>
-  > {
+  static async getLinkHistory(userId: string): Promise<URLHistory[]> {
     console.log("Entering URLService.getLinkHistory");
     try {
       console.log("Querying database");
-      const urlDocs = await URLModel.find().sort({ createdAt: -1 }).limit(10);
+      const urlDocs = await URLModel.find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(10);
 
       console.log("Query result:", urlDocs);
 
       if (urlDocs.length === 0) {
         console.log("No documents found");
-        return []; // Return an empty array if no links are found
+        return [];
       }
 
-      const result = urlDocs.map((doc) => ({
+      const result: URLHistory[] = urlDocs.map((doc: IURL) => ({
         longURL: doc.longURL,
         shortURL: `${doc.customDomain || process.env.BASE_URL}/${doc.shortCode}`,
         clicks: doc.clicks,

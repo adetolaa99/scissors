@@ -5,10 +5,16 @@ export class URLController {
   static async shortenURL(req: Request, res: Response): Promise<void> {
     try {
       const { longURL, customDomain } = req.body;
+      const userId = (req.user as any).userId;
       console.log("Received longURL:", longURL);
       console.log("Received customDomain:", customDomain);
+      console.log("User ID:", userId);
 
-      const shortURL = await URLService.shortenURL(longURL, customDomain);
+      const shortURL = await URLService.shortenURL(
+        longURL,
+        customDomain,
+        userId
+      );
       console.log("Generated shortURL:", shortURL);
 
       res.status(201).json({ shortURL });
@@ -46,7 +52,8 @@ export class URLController {
   static async getURLAnalytics(req: Request, res: Response): Promise<void> {
     try {
       const { shortCode } = req.params;
-      const analytics = await URLService.getURLAnalytics(shortCode);
+      const userId = (req.user as any).userId;
+      const analytics = await URLService.getURLAnalytics(shortCode, userId);
       res.status(200).json(analytics);
     } catch (error) {
       res.status(404).json({ error: (error as Error).message });
@@ -56,8 +63,9 @@ export class URLController {
   static async getLinkHistory(req: Request, res: Response): Promise<void> {
     console.log("Entering getLinkHistory controller");
     try {
-      console.log("Calling URLService.getLinkHistory");
-      const history = await URLService.getLinkHistory();
+      const userId = (req.user as any).userId;
+      console.log("Extracted userId:", userId);
+      const history = await URLService.getLinkHistory(userId);
       console.log("Received history:", history);
       res.status(200).json(history);
     } catch (error) {
