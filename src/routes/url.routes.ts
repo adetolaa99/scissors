@@ -5,24 +5,13 @@ import { isAuthenticated } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
-console.log("Setting up URL routes");
+// Applying isAuthenticated middleware to all routes
+router.use(isAuthenticated);
 
 router.post("/shorten", apiLimiter, URLController.shortenURL);
 router.get("/:shortCode", URLController.redirectToLongURL);
 router.post("/qrcode", apiLimiter, URLController.generateQRCode);
-
-router.get(
-  "/analytics/:shortCode",
-  isAuthenticated,
-  apiLimiter,
-  URLController.getURLAnalytics
-);
-
-router.get(
-  "/history",
-  isAuthenticated,
-  apiLimiter,
-  URLController.getLinkHistory
-);
+router.get("/analytics/:shortCode", apiLimiter, URLController.getURLAnalytics);
+router.get("/history", apiLimiter, URLController.getLinkHistory);
 
 export default router;

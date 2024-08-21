@@ -1,9 +1,9 @@
 import validator from "validator";
-import { URLModel, IURL } from "../models/url.model";
+import { URLModel } from "../models/url.model";
 import { redisClient } from "../config/redis";
 import QRCode from "qrcode";
 import crypto from "crypto";
-import { Document } from "mongoose";
+import mongoose from "mongoose";
 
 // Interface for the return type
 interface URLHistory {
@@ -12,38 +12,35 @@ interface URLHistory {
   clicks: number;
   createdAt: Date;
 }
+
 export class URLService {
   static async shortenURL(
     longURL: string,
     customDomain?: string,
-    userId?: string
+    userId?: mongoose.Types.ObjectId
   ): Promise<string> {
     if (!validator.isURL(longURL)) {
       throw new Error("Invalid URL");
     }
 
-    let baseURL: string;
+    const baseURL = customDomain
+      ? `https://${customDomain}`
+      : process.env.BASE_URL || "";
 
-    if (customDomain) {
-      if (!validator.isFQDN(customDomain)) {
-        throw new Error(
-          "Invalid custom domain. It must be a complete domain like 'example.com'."
-        );
-      }
-      baseURL = `https://${customDomain}`;
-    } else {
-      baseURL = process.env.BASE_URL || "";
+    if (customDomain && !validator.isFQDN(customDomain)) {
+      throw new Error(
+        "Invalid custom domain. It must be a complete domain like 'example.com'."
+      );
     }
 
     const shortCode = crypto.randomBytes(5).toString("base64url");
-
     const shortURL = `${baseURL}/${shortCode}`;
 
     const urlDoc = new URLModel({
       longURL,
       shortCode,
       customDomain,
-      userId,
+      userId: userId || null,
     });
 
     await urlDoc.save();
@@ -64,6 +61,7 @@ export class URLService {
       { $inc: { clicks: 1 } },
       { new: true }
     );
+
     if (!urlDoc) return null;
 
     await redisClient.set(shortCode, urlDoc.longURL, {
@@ -74,16 +72,12 @@ export class URLService {
   }
 
   static async generateQRCode(shortURL: string): Promise<string> {
-    try {
-      return await QRCode.toDataURL(shortURL);
-    } catch (error) {
-      throw new Error("Failed to generate QR code");
-    }
+    return await QRCode.toDataURL(shortURL);
   }
 
   static async getURLAnalytics(
     shortCode: string,
-    userId: string
+    userId: mongoose.Types.ObjectId
   ): Promise<{
     longURL: string;
     shortURL: string;
@@ -101,33 +95,18 @@ export class URLService {
     };
   }
 
-  static async getLinkHistory(userId: string): Promise<URLHistory[]> {
-    console.log("Entering URLService.getLinkHistory");
-    try {
-      console.log("Querying database");
-      const urlDocs = await URLModel.find({ userId })
-        .sort({ createdAt: -1 })
-        .limit(10);
+  static async getLinkHistory(
+    userId: mongoose.Types.ObjectId
+  ): Promise<URLHistory[]> {
+    const urlDocs = await URLModel.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(10);
 
-      console.log("Query result:", urlDocs);
-
-      if (urlDocs.length === 0) {
-        console.log("No documents found");
-        return [];
-      }
-
-      const result: URLHistory[] = urlDocs.map((doc: IURL) => ({
-        longURL: doc.longURL,
-        shortURL: `${doc.customDomain || process.env.BASE_URL}/${doc.shortCode}`,
-        clicks: doc.clicks,
-        createdAt: doc.createdAt,
-      }));
-
-      console.log("Mapped result:", result);
-      return result;
-    } catch (error) {
-      console.error("Error fetching link history:", error);
-      throw new Error("Failed to fetch link history");
-    }
+    return urlDocs.map((doc) => ({
+      longURL: doc.longURL,
+      shortURL: `${doc.customDomain || process.env.BASE_URL}/${doc.shortCode}`,
+      clicks: doc.clicks,
+      createdAt: doc.createdAt,
+    }));
   }
 }

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Link History</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>Link History</h1>
+  <ul id="historyList"></ul>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const response = await fetch('/api/history');
+      const history = await response.json();
+      
+      const historyList = document.getElementById('historyList');
+      history.forEach((item) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <p>Long URL: ${item.longURL}</p>
+          <p>Short URL: <a href="${item.shortURL}" target="_blank">${item.shortURL}</a></p>
+          <p>Clicks: ${item.clicks}</p>
+          <p>Created At: ${new Date(item.createdAt).toLocaleString()}</p>
+        `;
+        historyList.appendChild(listItem);
+      });
+    });
+  </script>
+</body>
+</html>

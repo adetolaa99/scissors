@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Analytics</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>URL Analytics</h1>
+  <form id="analyticsForm">
+    <label for="shortCode">Short Code:</label>
+    <input type="text" id="shortCode" name="shortCode" required>
+    
+    <button type="submit">Get Analytics</button>
+  </form>
+  <div id="analyticsResult"></div>
+  <script>
+    document.getElementById('analyticsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const shortCode = document.getElementById('shortCode').value;
+      
+      const response = await fetch(`/api/analytics/${shortCode}`);
+      const result = await response.json();
+      
+      document.getElementById('analyticsResult').innerHTML = `
+        <p>Long URL: ${result.longURL}</p>
+        <p>Short URL: <a href="${result.shortURL}" target="_blank">${result.shortURL}</a></p>
+        <p>Clicks: ${result.clicks}</p>
+        <p>Created At: ${new Date(result.createdAt).toLocaleString()}</p>
+      `;
+    });
+  </script>
+</body>
+</html>

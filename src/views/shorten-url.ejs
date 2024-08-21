@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shorten URL</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>Shorten URL</h1>
+  <form id="shortenForm" action="/api/shorten" method="POST">
+    <label for="longURL">Long URL:</label>
+    <input type="text" id="longURL" name="longURL" required>
+    
+    <label for="customDomain">Custom Domain (optional):</label>
+    <input type="text" id="customDomain" name="customDomain">
+    
+    <button type="submit">Shorten URL</button>
+  </form>
+  <div id="shortenedResult"></div>
+  <script>
+    document.getElementById('shortenForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const longURL = document.getElementById('longURL').value;
+      const customDomain = document.getElementById('customDomain').value;
+      
+      const response = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ longURL, customDomain }),
+      });
+      
+      const result = await response.json();
+      document.getElementById('shortenedResult').innerHTML = `<p>Shortened URL: <a href="${result.shortURL}" target="_blank">${result.shortURL}</a></p>`;
+    });
+  </script>
+</body>
+</html>
