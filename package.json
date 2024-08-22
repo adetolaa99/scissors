@@ -5,7 +5,7 @@
   "main": "dist/app.js",
   "scripts": {
     "start": "npm run build && node dist/app.js",
-    "build": "tsc && xcopy src\\views dist\\views /E /I && xcopy src\\public dist\\public /E /I",
+    "build": "tsc && node build.js",
     "dev": "nodemon src/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -25,6 +25,7 @@
     "express": "^4.19.2",
     "express-rate-limit": "^7.4.0",
     "express-session": "^1.18.0",
+    "fs-extra": "^11.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.2",
     "nanoid": "^5.0.7",
@@ -45,6 +46,7 @@
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.0.1",
     "@typescript-eslint/parser": "^8.0.1",
+    "copyfiles": "^2.4.1",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
