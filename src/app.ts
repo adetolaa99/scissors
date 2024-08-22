@@ -75,7 +75,7 @@ app.get("/history", isAuthenticated, (req, res) => {
 });
 
 // Catch-all route for shortCode
-app.get("/:shortCode", urlRoutes); // Ensure this is correctly handled by urlRoutes
+app.get("/:shortCode", urlRoutes);
 
 // Handle 404 errors
 app.use((req, res) => {

@@ -11,7 +11,9 @@
   <ul id="historyList"></ul>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const response = await fetch('/api/history');
+      const response = await fetch('/api/history', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
       const history = await response.json();
       
       const historyList = document.getElementById('historyList');

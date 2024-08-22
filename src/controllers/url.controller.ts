@@ -9,7 +9,6 @@ export class URLController {
         res.status(401).json({ message: "Unauthorized" });
         return;
       }
-
       const { longURL, customDomain } = req.body;
       console.log("Received longURL:", longURL);
       console.log("Received customDomain:", customDomain);

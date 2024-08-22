@@ -5,7 +5,7 @@ export interface IURL extends Document {
   shortCode: string;
   customDomain?: string;
   clicks: number;
-  userId: mongoose.Types.ObjectId; // Ensure it matches UserType
+  userId: mongoose.Types.ObjectId; 
   createdAt: Date;
 }
 

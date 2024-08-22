@@ -20,7 +20,9 @@
       e.preventDefault();
       const shortCode = document.getElementById('shortCode').value;
       
-      const response = await fetch(`/api/analytics/${shortCode}`);
+      const response = await fetch(`/api/analytics/${shortCode}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
       const result = await response.json();
       
       document.getElementById('analyticsResult').innerHTML = `

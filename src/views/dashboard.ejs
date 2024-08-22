@@ -7,12 +7,52 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <h1>Welcome, <%= user.username %>!</h1>
+  <h1>Welcome, <span id="username"></span>!</h1>
   <nav>
     <a href="/shorten-url">Shorten URL</a>
     <a href="/analytics">URL Analytics</a>
     <a href="/history">Link History</a>
-    <a href="/auth/logout">Logout</a>
+    <a id="logout" href="#">Logout</a>
   </nav>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert('No token found, redirecting to login');
+        window.location.href = '/login';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/dashboard', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Unauthorized');
+        }
+
+        const data = await response.json();
+        document.getElementById('username').textContent = data.username;
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Session expired or unauthorized. Please log in again.');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    });
+
+    document.getElementById('logout').addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.removeItem('token');
+      window.location.href = '/auth/logout';
+    });
+  </script>
 </body>
 </html>

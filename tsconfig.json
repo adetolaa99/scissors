@@ -107,9 +107,9 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "strictNullChecks": true,
-    "typeRoots": ["node_modules/@types"],
+    "typeRoots": ["node_modules/@types","./src"],
     "types": ["node", "bcrypt"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*.ts", "src/express-session.d.ts"],
   "exclude": ["node_modules"]
 }
