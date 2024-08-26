@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { URLService } from "../services/url.service";
 import mongoose from "mongoose";
+import { UserType } from "../middleware/types";
 
 export class URLController {
   static async shortenURL(req: Request, res: Response): Promise<void> {
@@ -61,41 +62,35 @@ export class URLController {
   }
 
   static async getURLAnalytics(req: Request, res: Response): Promise<void> {
+    console.log("Fetching analytics");
     try {
-      if (!req.user) {
-        res.status(401).json({ message: "Unauthorized" });
-        return;
-      }
       const { shortCode } = req.params;
-      const userId = (req.user as { userId: mongoose.Types.ObjectId }).userId;
+      const userId = (req.user as UserType).userId;
+
       const analytics = await URLService.getURLAnalytics(shortCode, userId);
-      res.status(200).json(analytics);
+      res.json(analytics);
     } catch (error) {
-      console.error("Error getting URL analytics:", error);
-      res.status(404).json({ error: (error as Error).message });
+      console.error("Error in getURLAnalytics:", error);
+      res.status(500).json({
+        message: (error as Error).message || "Error fetching analytics",
+      });
     }
   }
 
   static async getLinkHistory(req: Request, res: Response): Promise<void> {
-    console.log("Entering getLinkHistory controller");
-
-    if (!req.user) {
-      console.log("User not authenticated");
-      res.status(401).json({ message: "Unauthorized" });
-      return;
-    }
-
+    console.log("Fetching link history");
     try {
-      const userId = (req.user as { userId: mongoose.Types.ObjectId }).userId;
-      console.log("User ID in controller:", userId);
+      const userId = (req.user as UserType).userId;
 
       const history = await URLService.getLinkHistory(userId);
-      console.log("Received history:", history);
-
-      res.status(200).json(history);
+      res.json({ links: history });
     } catch (error) {
-      console.error("Error in getLinkHistory controller:", error);
-      res.status(500).json({ error: "Failed to fetch link history" });
+      console.error("Error in getLinkHistory:", error);
+      res
+        .status(500)
+        .json({
+          message: (error as Error).message || "Error fetching link history",
+        });
     }
   }
 }

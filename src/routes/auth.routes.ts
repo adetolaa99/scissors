@@ -6,13 +6,6 @@ const router = express.Router();
 
 router.post("/signup", AuthController.signup);
 router.post("/login", AuthController.login);
-router.post("/verify-token", isAuthenticated, (req: Request, res: Response) => {
-  res.status(200).json({ user: req.user, message: "Token is valid" });
-});
-router.get("/dashboard", AuthController.dashboard, (req, res) => {
-  res.render("dashboard", { user: req.user });
-});
 router.post("/refresh-token", isAuthenticated, AuthController.refreshToken);
-router.get("/logout", AuthController.logout);
 
 export default router;

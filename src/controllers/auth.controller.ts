@@ -11,7 +11,7 @@ export class AuthController {
     try {
       const existingUser = await User.findOne({ username });
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(400).json({ message: "User already exists!" });
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = new User({ username, password: hashedPassword });
@@ -46,34 +46,6 @@ export class AuthController {
         res.json({ token });
       });
     })(req, res, next);
-  }
-
-  static async dashboard(req: Request, res: Response) {
-    try {
-      const userId = (req.user as { userId: string }).userId;
-      const user = await User.findById(userId).lean();
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json({ username: user.username });
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Server error", error: (error as Error).message });
-    }
-  }
-
-  static logout(req: Request, res: Response) {
-    req.logout((err) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error logging out", error: err.message });
-      }
-    });
-    res.redirect("/login");
   }
 
   static refreshToken(req: Request, res: Response) {

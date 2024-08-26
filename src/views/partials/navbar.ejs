@@ -1,0 +1,14 @@
+<div class="navbar">
+  <a href="/shorten-url">Shorten URL</a>
+  <a href="/qrcode">Generate QR Code</a>
+  <a href="/analytics">URL Analytics</a>
+  <a href="/history">Link History</a>
+  <a href="#" id="logout">Logout</a>
+</div>
+
+<script>
+  document.getElementById('logout').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  });
+</script>

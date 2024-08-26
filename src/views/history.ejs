@@ -1,33 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Link History</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <h1>Link History</h1>
-  <ul id="historyList"></ul>
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const response = await fetch('/api/history', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link History</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <%- include('partials/navbar') %>
+
+    <h1>Your Link History</h1>
+
+    <div id="link-history"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", async function () {
+        try {
+          const response = await fetch("/api/history", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+
+          const historyData = await response.json();
+
+          if (response.ok) {
+            const historyContainer = document.getElementById("link-history");
+            historyData.links.forEach((link) => {
+              const linkElement = document.createElement("div");
+              linkElement.classList.add("link-item");
+              linkElement.innerHTML = `
+              <p><strong>Short URL:</strong> <a href="${link.shortUrl}" target="_blank">${link.shortUrl}</a></p>
+              <p><strong>Original URL:</strong> ${link.originalUrl}</p>
+              <p><strong>Date Created:</strong> ${new Date(link.createdAt).toLocaleString()}</p>
+            `;
+              historyContainer.appendChild(linkElement);
+            });
+          } else {
+            console.error("Error fetching history:", historyData.message);
+          }
+        } catch (error) {
+          console.error("Error loading link history:", error);
+        }
       });
-      const history = await response.json();
-      
-      const historyList = document.getElementById('historyList');
-      history.forEach((item) => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-          <p>Long URL: ${item.longURL}</p>
-          <p>Short URL: <a href="${item.shortURL}" target="_blank">${item.shortURL}</a></p>
-          <p>Clicks: ${item.clicks}</p>
-          <p>Created At: ${new Date(item.createdAt).toLocaleString()}</p>
-        `;
-        historyList.appendChild(listItem);
-      });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

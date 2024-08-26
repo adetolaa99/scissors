@@ -1,58 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <h1>Welcome, <span id="username"></span>!</h1>
-  <nav>
-    <a href="/shorten-url">Shorten URL</a>
-    <a href="/analytics">URL Analytics</a>
-    <a href="/history">Link History</a>
-    <a id="logout" href="#">Logout</a>
-  </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shorten URL</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const token = localStorage.getItem('token');
+  <body>
+    <%- include('partials/navbar') %>
+    <div id="loading">Loading...</div>
+    <div id="content" style="display: none;">
+      <h1>Shorten URL</h1>
+      <form id="shortenForm" action="/api/shorten" method="POST">
+        <label for="longURL">Long URL:</label>
+        <input type="text" id="longURL" name="longURL" required />
 
-      if (!token) {
-        alert('No token found, redirecting to login');
-        window.location.href = '/login';
-        return;
-      }
+        <label for="customDomain">Custom Domain (optional):</label>
+        <input type="text" id="customDomain" name="customDomain" />
 
-      try {
-        const response = await fetch('/api/dashboard', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        <button type="submit">Shorten URL</button>
+      </form>
+      <div id="shortenedResult"></div>
+    </div>
 
-        if (!response.ok) {
-          throw new Error('Unauthorized');
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          window.location.href = '/login';
+        } else {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('content').style.display = 'block';
         }
+      });
 
-        const data = await response.json();
-        document.getElementById('username').textContent = data.username;
-      } catch (error) {
-        console.error('Error:', error);
-        alert('Session expired or unauthorized. Please log in again.');
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-    });
+      document
+        .getElementById("shortenForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const longURL = document.getElementById("longURL").value;
+          const customDomain = document.getElementById("customDomain").value;
 
-    document.getElementById('logout').addEventListener('click', (e) => {
-      e.preventDefault();
-      localStorage.removeItem('token');
-      window.location.href = '/auth/logout';
-    });
-  </script>
-</body>
+          const token = localStorage.getItem("token");
+
+          try {
+            const response = await fetch("/api/shorten", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ longURL, customDomain }),
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+              document.getElementById("shortenedResult").innerHTML =
+                `<p>Shortened URL: <a href="${result.shortURL}" target="_blank">${result.shortURL}</a></p>`;
+            } else {
+              document.getElementById("shortenedResult").innerHTML =
+                `<p>Error: ${result.message}</p>`;
+            }
+          } catch (error) {
+            console.error('Error shortening URL:', error);
+            document.getElementById("shortenedResult").innerHTML =
+              `<p>Error: An unexpected error occurred. Please try again.</p>`;
+          }
+        });
+    </script>
+  </body>
 </html>

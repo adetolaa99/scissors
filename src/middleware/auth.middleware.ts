@@ -9,12 +9,16 @@ export const isAuthenticated = async (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    console.log("Authorization Header:", req.headers.authorization);
+    const authHeader = req.headers.authorization;
+    console.log("Authorization Header:", authHeader);
 
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.error("Authorization header missing or incorrect");
       return res.status(401).json({ message: "Unauthorized" });
     }
+
+    const token = authHeader.split(" ")[1];
+    console.log("Extracted Token:", token);
 
     const decoded = jwt.verify(
       token,
@@ -23,15 +27,17 @@ export const isAuthenticated = async (
     console.log("Decoded Token:", decoded);
 
     const user = await User.findById(decoded.userId).lean();
-    console.log("User:", user);
+    console.log("User Found:", user);
 
     if (!user) {
+      console.error("User not found");
       return res.status(401).json({ message: "User not found" });
     }
 
     req.user = { ...user, userId: decoded.userId };
     next();
   } catch (error) {
+    console.error("JWT verification failed", error);
     return res.status(401).json({ message: "Unauthorized" });
   }
 };

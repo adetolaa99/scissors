@@ -1,37 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generate QR Code</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <h1>Generate QR Code</h1>
-  <form id="qrCodeForm">
-    <label for="shortURL">Short URL:</label>
-    <input type="text" id="shortURL" name="shortURL" required>
-    
-    <button type="submit">Generate QR Code</button>
-  </form>
-  <img id="qrCodeImage" src="" alt="QR Code">
-  <script>
-    document.getElementById('qrCodeForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const shortURL = document.getElementById('shortURL').value;
-      
-      const response = await fetch('/api/qrcode', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ shortURL }),
-      });
-      
-      const result = await response.json();
-      document.getElementById('qrCodeImage').src = result.qrCode;
-    });
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generate QR Code</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+
+  <body>
+    <%- include('partials/navbar') %>
+    <h1>Generate QR Code</h1>
+    <form id="qrCodeForm">
+      <label for="shortURL">Short URL:</label>
+      <input
+        type="text"
+        id="shortURL"
+        name="shortURL"
+        required
+        placeholder="Enter the short URL"
+      />
+
+      <button type="submit">Generate QR Code</button>
+    </form>
+    <img id="qrCodeImage" src="" alt="QR Code" style="display: none" />
+
+    <script>
+      document
+        .getElementById("qrCodeForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const shortURL = document.getElementById("shortURL").value;
+
+          const token = localStorage.getItem("token");
+
+          const response = await fetch("/api/qrcode", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ shortURL }),
+          });
+
+          const result = await response.json();
+          const qrCodeImage = document.getElementById("qrCodeImage");
+          qrCodeImage.src = result.qrCode;
+          qrCodeImage.style.display = "block";
+        });
+    </script>
+  </body>
 </html>
