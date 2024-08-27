@@ -110,6 +110,7 @@
     "typeRoots": ["node_modules/@types", "./src"],
     "types": ["node", "bcrypt"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"],
+  "copy": [{ "from": "src/views", "to": "dist/views" }]
 }
