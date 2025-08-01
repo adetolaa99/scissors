@@ -11,18 +11,14 @@ export class URLController {
         return;
       }
       const { longURL, customDomain } = req.body;
-      console.log("Received longURL:", longURL);
-      console.log("Received customDomain:", customDomain);
 
       const userId = (req.user as { userId: mongoose.Types.ObjectId }).userId;
-      console.log("User ID:", userId);
 
       const shortURL = await URLService.shortenURL(
         longURL,
         customDomain,
         userId
       );
-      console.log("Generated shortURL:", shortURL);
       res.status(201).json({ shortURL });
     } catch (error) {
       console.error("Error shortening URL:", error);
@@ -32,13 +28,11 @@ export class URLController {
 
   static async redirectToLongURL(req: Request, res: Response): Promise<void> {
     const { shortCode } = req.params;
-    console.log(`Received shortCode: ${shortCode}`);
 
     try {
       const longURL = await URLService.getLongURL(shortCode);
 
       if (longURL) {
-        console.log(`Redirecting to: ${longURL}`);
         res.redirect(longURL);
       } else {
         console.log("URL not found");
@@ -62,7 +56,6 @@ export class URLController {
   }
 
   static async getURLAnalytics(req: Request, res: Response): Promise<void> {
-    console.log("Fetching analytics");
     try {
       const { shortCode } = req.params;
       const userId = (req.user as UserType).userId;
@@ -78,19 +71,16 @@ export class URLController {
   }
 
   static async getLinkHistory(req: Request, res: Response): Promise<void> {
-    console.log("Fetching link history");
     try {
       const userId = (req.user as UserType).userId;
 
       const history = await URLService.getLinkHistory(userId);
-      res.json({ links: history });
+      res.json(history);
     } catch (error) {
       console.error("Error in getLinkHistory:", error);
-      res
-        .status(500)
-        .json({
-          message: (error as Error).message || "Error fetching link history",
-        });
+      res.status(500).json({
+        message: (error as Error).message || "Error fetching link history",
+      });
     }
   }
 }

@@ -23,14 +23,24 @@ export class URLService {
       throw new Error("Invalid URL");
     }
 
-    const baseURL = customDomain
-      ? `https://${customDomain}`
-      : process.env.BASE_URL || "";
+    let baseURL: string;
 
-    if (customDomain && !validator.isFQDN(customDomain)) {
-      throw new Error(
-        "Invalid custom domain. It must be a complete domain like 'example.com'."
-      );
+    if (!process.env.BASE_URL) {
+      throw new Error("❌ BASE_URL is not defined in environment variables.");
+    }
+
+    if (customDomain) {
+      // Remove protocol if user included it
+      customDomain = customDomain.replace(/^https?:\/\//, "");
+
+      if (!validator.isFQDN(customDomain)) {
+        throw new Error(
+          "Invalid custom domain. It must be a complete domain like 'example.com'."
+        );
+      }
+      baseURL = `https://${customDomain}`;
+    } else {
+      baseURL = process.env.BASE_URL!;
     }
 
     const shortCode = crypto.randomBytes(5).toString("base64url");
@@ -39,7 +49,7 @@ export class URLService {
     const urlDoc = new URLModel({
       longURL,
       shortCode,
-      customDomain,
+      customDomain: customDomain || undefined,
       userId: userId || null,
     });
 
@@ -54,7 +64,15 @@ export class URLService {
 
   static async getLongURL(shortCode: string): Promise<string | null> {
     const cachedURL = await redisClient.get(shortCode);
-    if (cachedURL) return cachedURL;
+    if (cachedURL) {
+      const urlDoc = await URLModel.findOneAndUpdate(
+        { shortCode },
+        { $inc: { clicks: 1 } },
+        { new: true }
+      );
+      console.log(`Updated clicks in DB (cached): ${urlDoc?.clicks}`);
+      return cachedURL;
+    }
 
     const urlDoc = await URLModel.findOneAndUpdate(
       { shortCode },
@@ -62,7 +80,10 @@ export class URLService {
       { new: true }
     );
 
-    if (!urlDoc) return null;
+    if (!urlDoc) {
+      console.log(`No document found for shortCode: ${shortCode}`); //
+      return null;
+    }
 
     await redisClient.set(shortCode, urlDoc.longURL, {
       EX: 86400, // 24 hours
@@ -87,10 +108,12 @@ export class URLService {
     const urlDoc = await URLModel.findOne({ shortCode, userId });
     if (!urlDoc) throw new Error("URL not found or unauthorized");
 
+    const updatedDoc = await URLModel.findOne({ shortCode });
+
     return {
       longURL: urlDoc.longURL,
       shortURL: `${urlDoc.customDomain || process.env.BASE_URL}/${urlDoc.shortCode}`,
-      clicks: urlDoc.clicks,
+      clicks: updatedDoc?.clicks || 0,
       createdAt: urlDoc.createdAt,
     };
   }

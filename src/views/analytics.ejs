@@ -19,45 +19,46 @@
     <div id="analytics-data"></div>
 
     <script>
-      async function fetchAnalytics() {
-        const shortCode = document.getElementById("shortCodeInput").value;
-        if (!shortCode) {
-          alert("Please enter a short code");
-          return;
-        }
+async function fetchAnalytics() {
+  const shortCode = document.getElementById("shortCodeInput").value.trim();
+  if (!shortCode) {
+    alert("Please enter a short code");
+    return;
+  }
 
-        try {
-          const response = await fetch(`/api/analytics/${shortCode}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          });
+  // Extract just the short code if user enters full URL
+  const shortCodeOnly = shortCode.split('/').pop();
 
-          const analyticsData = await response.json();
+  try {
+    const response = await fetch(`/api/analytics/${shortCodeOnly}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
 
-          const analyticsContainer = document.getElementById("analytics-data");
+    const analyticsData = await response.json();
+    const analyticsContainer = document.getElementById("analytics-data");
 
-          if (response.ok) {
-            analyticsContainer.innerHTML = `
-            <div class="analytics-item">
-              <p><strong>Short URL:</strong> <a href="${analyticsData.shortURL}" target="_blank">${analyticsData.shortURL}</a></p>
-              <p><strong>Long URL:</strong> ${analyticsData.longURL}</p>
-              <p><strong>Total Clicks:</strong> ${analyticsData.clicks}</p>
-              <p><strong>Created At:</strong> ${new Date(analyticsData.createdAt).toLocaleString()}</p>
-            </div>
-          `;
-          } else {
-            analyticsContainer.innerHTML = `<p>Error: ${analyticsData.message}</p>`;
-            console.error("Error fetching analytics:", analyticsData.message);
-          }
-        } catch (error) {
-          console.error("Error loading analytics data:", error);
-          document.getElementById("analytics-data").innerHTML =
-            "<p>An error occurred while fetching analytics data.</p>";
-        }
-      }
+    if (response.ok) {
+      analyticsContainer.innerHTML = `
+        <div class="analytics-item">
+          <p><strong>Short URL:</strong> <a href="${analyticsData.shortURL}" target="_blank">${analyticsData.shortURL}</a></p>
+          <p><strong>Long URL:</strong> ${analyticsData.longURL}</p>
+          <p><strong>Total Clicks:</strong> ${analyticsData.clicks}</p>
+          <p><strong>Created At:</strong> ${new Date(analyticsData.createdAt).toLocaleString()}</p>
+        </div>
+      `;
+    } else {
+      analyticsContainer.innerHTML = `<p style="color: red;">Error: ${analyticsData.message}</p>`;
+    }
+  } catch (error) {
+    console.error("Error loading analytics data:", error);
+    document.getElementById("analytics-data").innerHTML =
+      "<p style='color: red;'>An error occurred while fetching analytics data.</p>";
+  }
+}
     </script>
   </body>
 </html>

@@ -37,10 +37,9 @@ app.use(passport.session());
 
 // Mounting the routes
 app.use("/auth", authRoutes);
-app.use("/", pageRoutes);
 app.use("/api", urlRoutes);
+app.use("/", pageRoutes);
 
-// Catch-all route for shortCode
 app.get("/:shortCode", URLController.redirectToLongURL);
 
 // Handle 404 errors

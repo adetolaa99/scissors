@@ -25,24 +25,37 @@
           });
 
           const historyData = await response.json();
+          console.log("History data received:", historyData);
 
           if (response.ok) {
             const historyContainer = document.getElementById("link-history");
-            historyData.links.forEach((link) => {
-              const linkElement = document.createElement("div");
-              linkElement.classList.add("link-item");
-              linkElement.innerHTML = `
-              <p><strong>Short URL:</strong> <a href="${link.shortUrl}" target="_blank">${link.shortUrl}</a></p>
-              <p><strong>Original URL:</strong> ${link.originalUrl}</p>
-              <p><strong>Date Created:</strong> ${new Date(link.createdAt).toLocaleString()}</p>
-            `;
-              historyContainer.appendChild(linkElement);
-            });
+
+            if (Array.isArray(historyData) && historyData.length > 0) {
+              historyData.forEach((link) => {
+                const linkElement = document.createElement("div");
+                linkElement.classList.add("link-item");
+                linkElement.innerHTML = `
+            <p><strong>Short URL:</strong> <a href="${link.shortURL}" target="_blank">${link.shortURL}</a></p>
+            <p><strong>Original URL:</strong> ${link.longURL}</p>
+            <p><strong>Clicks:</strong> ${link.clicks}</p>
+            <p><strong>Date Created:</strong> ${new Date(link.createdAt).toLocaleString()}</p>
+            <hr>
+          `;
+                historyContainer.appendChild(linkElement);
+              });
+            } else {
+              historyContainer.innerHTML =
+                "<p>No links found in your history.</p>";
+            }
           } else {
             console.error("Error fetching history:", historyData.message);
+            document.getElementById("link-history").innerHTML =
+              `<p>Error: ${historyData.message || "Unknown error"}</p>`;
           }
         } catch (error) {
           console.error("Error loading link history:", error);
+          document.getElementById("link-history").innerHTML =
+            "<p>An error occurred while loading history.</p>";
         }
       });
     </script>

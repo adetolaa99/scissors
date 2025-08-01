@@ -5,10 +5,6 @@ import { isAuthenticated } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
-// Public route for redirection
-router.get("/:shortCode", URLController.redirectToLongURL);
-
-// Applying isAuthenticated middleware to all routes
 router.use(isAuthenticated);
 
 router.post("/shorten", apiLimiter, URLController.shortenURL);
