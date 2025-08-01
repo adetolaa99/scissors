@@ -10,7 +10,7 @@
   <body>
     <%- include('partials/navbar') %>
     <div id="loading">Loading...</div>
-    <div id="content" style="display: none;">
+    <div id="content" style="display: none">
       <h1>Shorten URL</h1>
       <form id="shortenForm" action="/api/shorten" method="POST">
         <label for="longURL">Long URL:</label>
@@ -19,19 +19,19 @@
         <label for="customDomain">Custom Domain (optional):</label>
         <input type="text" id="customDomain" name="customDomain" />
 
-        <button type="submit">Shorten URL</button>
+        <button type="submit">Shorten</button>
       </form>
       <div id="shortenedResult"></div>
     </div>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         const token = localStorage.getItem("token");
         if (!token) {
-          window.location.href = '/login';
+          window.location.href = "/login";
         } else {
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('content').style.display = 'block';
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("content").style.display = "block";
         }
       });
 
@@ -41,6 +41,11 @@
           e.preventDefault();
           const longURL = document.getElementById("longURL").value;
           const customDomain = document.getElementById("customDomain").value;
+          const button = document.querySelector('button[type="submit"]');
+          const originalText = button.textContent;
+
+          button.textContent = "Shortening...";
+          button.disabled = true;
 
           const token = localStorage.getItem("token");
 
@@ -55,19 +60,53 @@
             });
 
             const result = await response.json();
+            const resultDiv = document.getElementById("shortenedResult");
+
             if (response.ok) {
-              document.getElementById("shortenedResult").innerHTML =
-                `<p>Shortened URL: <a href="${result.shortURL}" target="_blank">${result.shortURL}</a></p>`;
+              resultDiv.innerHTML = `
+          <div style="color: #28a745; background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px;">
+            <p><strong>✅ Success!</strong></p>
+            <p>Shortened URL: <a href="${result.shortURL}" target="_blank" style="color: #007bff; font-weight: bold;">${result.shortURL}</a></p>
+            <button onclick="copyToClipboard('${result.shortURL}')" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Copy URL</button>
+          </div>
+        `;
             } else {
-              document.getElementById("shortenedResult").innerHTML =
-                `<p>Error: ${result.message}</p>`;
+              resultDiv.innerHTML = `
+          <div style="color: #e74c3c; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px;">
+            <p><strong>❌ Error:</strong> ${result.error || result.message}</p>
+          </div>
+        `;
             }
           } catch (error) {
-            console.error('Error shortening URL:', error);
-            document.getElementById("shortenedResult").innerHTML =
-              `<p>Error: An unexpected error occurred. Please try again.</p>`;
+            console.error("Error shortening URL:", error);
+            document.getElementById("shortenedResult").innerHTML = `
+        <div style="color: #e74c3c; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px;">
+          <p><strong>❌ Error:</strong> An unexpected error occurred! Please try again</p>
+        </div>
+      `;
+          } finally {
+            button.textContent = originalText;
+            button.disabled = false;
           }
         });
+
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            alert("URL copied to clipboard!");
+          })
+          .catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            alert("URL copied to clipboard!");
+          });
+      }
     </script>
   </body>
 </html>

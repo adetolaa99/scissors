@@ -9,15 +9,40 @@
 
   <body>
     <h1>Sign Up</h1>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div id="error-message"><%= error %></div>
+    <% } %>
+
     <form action="/auth/signup" method="POST">
       <label for="username">Username:</label>
       <input type="text" id="username" name="username" required />
 
       <label for="password">Password:</label>
-      <input type="password" id="password" name="password" required />
+      <div class="password-container">
+        <input type="password" id="password" name="password" required />
+        <span class="password-toggle" onclick="togglePassword('password')"
+          >🔒</span
+        >
+      </div>
 
       <button type="submit">Sign Up</button>
     </form>
     <p>Already have an account? <a href="/login">Login here</a></p>
+
+    <script>
+      function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const toggle = input.nextElementSibling;
+
+        if (input.type === "password") {
+          input.type = "text";
+          toggle.textContent = "🔓";
+        } else {
+          input.type = "password";
+          toggle.textContent = "🔒";
+        }
+      }
+    </script>
   </body>
 </html>

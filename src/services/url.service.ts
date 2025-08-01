@@ -106,7 +106,7 @@ export class URLService {
     createdAt: Date;
   }> {
     const urlDoc = await URLModel.findOne({ shortCode, userId });
-    if (!urlDoc) throw new Error("URL not found or unauthorized");
+    if (!urlDoc) throw new Error("URL not found!");
 
     const updatedDoc = await URLModel.findOne({ shortCode });
 

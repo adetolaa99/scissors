@@ -1,60 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login to Scissors</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login to Scissors</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
 
-<body>
-  <h1>Welcome to Scissors</h1>
+  <body>
+    <h1>Welcome to Scissors</h1>
     <p>
       Your ultimate URL shortening platform. Sign in to shorten your URLs,
-      generate QR codes, and track analytics easily.
+      generate QR codes, and track link analytics easily.
     </p>
 
-  <form id="loginForm">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required placeholder="Enter your username">
-    
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required placeholder="Enter your password">
-    
-    <button type="submit">Login</button>
-  </form>
-  <p>Don't have an account? <a href="/signup">Sign up here</a></p>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div style="color: #28a745; background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 20px; text-align: center;">
+        <%= success %>
+      </div>
+    <% } %>
 
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(event) {
-      event.preventDefault();
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div id="error-message"><%= error %></div>
+    <% } %>
 
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+    <form id="loginForm">
+      <label for="username">Username:</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        required
+        placeholder="Enter your username"
+      />
 
-      try {
-        const response = await fetch('/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ username, password })
-        });
+      <label for="password">Password:</label>
+      <div class="password-container">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          placeholder="Enter your password"
+        />
+        <span class="password-toggle" onclick="togglePassword('password')"
+          >🔒</span
+        >
+      </div>
 
-        const data = await response.json();
+      <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="/signup">Sign up here</a></p>
 
-        if (response.ok) {
-          localStorage.setItem('token', data.token);
-          console.log("Token stored:", data.token);
-          window.location.href = '/shorten-url';
+    <script>
+      function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const toggle = input.nextElementSibling;
+
+        if (input.type === "password") {
+          input.type = "text";
+          toggle.textContent = "🔓";
         } else {
-          alert(data.message || 'Login failed');
+          input.type = "password";
+          toggle.textContent = "🔒";
         }
-      } catch (error) {
-        console.error('Error logging in:', error);
-        alert('An error occurred. Please try again.');
       }
+
+      document.getElementById('loginForm').addEventListener('submit', async function(event) {
+  event.preventDefault();
+
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const button = document.querySelector('button[type="submit"]');
+  const originalText = button.textContent;
+  
+  const existingError = document.getElementById('error-message');
+  if (existingError) existingError.remove();
+  
+  button.textContent = 'Logging in...';
+  button.disabled = true;
+
+  try {
+    const response = await fetch('/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
     });
-  </script>
-</body>
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.setItem('token', data.token);
+      console.log("Token stored:", data.token);
+      window.location.href = '/shorten-url';
+    } else {
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'error-message';
+      errorDiv.textContent = data.message || 'Login failed';
+      
+      const form = document.getElementById('loginForm');
+      form.parentNode.insertBefore(errorDiv, form);
+      
+      setTimeout(() => {
+        if (document.getElementById('error-message')) {
+          document.getElementById('error-message').remove();
+        }
+      }, 5000);
+    }
+  } catch (error) {
+    console.error('Error logging in:', error);
+    
+    // Display error message
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'error-message';
+    errorDiv.textContent = 'An error occurred! Please try again';
+    
+    const form = document.getElementById('loginForm');
+    form.parentNode.insertBefore(errorDiv, form);
+    
+    setTimeout(() => {
+      if (document.getElementById('error-message')) {
+        document.getElementById('error-message').remove();
+      }
+    }, 5000);
+  } finally {
+    button.textContent = originalText;
+    button.disabled = false;
+  }
+});
+    </script>
+  </body>
 </html>
