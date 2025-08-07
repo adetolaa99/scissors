@@ -106,14 +106,22 @@ export class URLService {
     createdAt: Date;
   }> {
     const urlDoc = await URLModel.findOne({ shortCode, userId });
-    if (!urlDoc) throw new Error("URL not found!");
+    if (!urlDoc) {
+      const existsForOtherUser = await URLModel.findOne({ shortCode });
 
-    const updatedDoc = await URLModel.findOne({ shortCode });
+      if (existsForOtherUser) {
+        throw new Error("You can only view analytics for URLs you created!");
+      } else {
+        throw new Error(
+          "Short code not found... Please check the code and try again"
+        );
+      }
+    }
 
     return {
       longURL: urlDoc.longURL,
       shortURL: `${urlDoc.customDomain || process.env.BASE_URL}/${urlDoc.shortCode}`,
-      clicks: updatedDoc?.clicks || 0,
+      clicks: urlDoc?.clicks || 0,
       createdAt: urlDoc.createdAt,
     };
   }

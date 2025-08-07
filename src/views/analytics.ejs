@@ -55,20 +55,32 @@
 
           if (response.ok) {
             analyticsContainer.innerHTML = `
-        <div class="analytics-item">
-          <p><strong>Short URL:</strong> <a href="${analyticsData.shortURL}" target="_blank">${analyticsData.shortURL}</a></p>
-          <p><strong>Long URL:</strong> <a href="${analyticsData.longURL}" target="_blank">${analyticsData.longURL}</a></p>
-          <p><strong>Total Clicks:</strong> <span style="color: #28a745; font-weight: bold; font-size: 1.2em;">${analyticsData.clicks}</span></p>
-          <p><strong>Created At:</strong> ${new Date(analyticsData.createdAt).toLocaleString()}</p>
-        </div>
-      `;
+    <div class="analytics-item">
+      <p><strong>Short URL:</strong> <a href="${analyticsData.shortURL}" target="_blank">${analyticsData.shortURL}</a></p>
+      <p><strong>Long URL:</strong> <a href="${analyticsData.longURL}" target="_blank">${analyticsData.longURL}</a></p>
+      <p><strong>Total Clicks:</strong> <span style="color: #28a745; font-weight: bold; font-size: 1.2em;">${analyticsData.clicks}</span></p>
+      <p><strong>Created At:</strong> ${new Date(analyticsData.createdAt).toLocaleString()}</p>
+    </div>
+  `;
           } else {
-            analyticsContainer.innerHTML = `<p style="color: red;">Error: ${analyticsData.message}</p>`;
+            let errorMsg = analyticsData.message || "Unknown error";
+            if (errorMsg.includes("not found")) {
+              errorMsg =
+                "Short code not found! Please check the code and try again";
+            } else if (errorMsg.includes("unauthorized")) {
+              errorMsg = "You can only view analytics for URLs you created";
+            }
+
+            analyticsContainer.innerHTML = `
+    <div class="result-error">
+      <p><strong>❌ Error:</strong> ${errorMsg}</p>
+    </div>
+  `;
           }
         } catch (error) {
           console.error("Error loading analytics data:", error);
           document.getElementById("analytics-data").innerHTML =
-            "<p style='color: red;'>An error occurred while fetching analytics data.</p>";
+            "<p style='color: red;'>An error occurred while fetching analytics data</p>";
         } finally {
           button.textContent = originalText;
           button.disabled = false;

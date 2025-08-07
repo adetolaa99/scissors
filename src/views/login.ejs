@@ -8,20 +8,15 @@
   </head>
 
   <body>
-    <h1>Welcome to Scissors</h1>
-    <p>
-      Your ultimate URL shortening platform. Sign in to shorten your URLs,
-      generate QR codes, and track link analytics easily.
-    </p>
+    <h1>Log In</h1>
+    <p>Scissors, Your ultimate URL shortening platform.</p>
 
     <% if (typeof success !== 'undefined' && success) { %>
-      <div style="color: #28a745; background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); border-radius: 8px; padding: 10px; margin-bottom: 20px; text-align: center;">
-        <%= success %>
-      </div>
+    <div class="success-message"><%= success %></div>
     <% } %>
 
     <% if (typeof error !== 'undefined' && error) { %>
-      <div id="error-message"><%= error %></div>
+    <div id="error-message"><%= error %></div>
     <% } %>
 
     <form id="loginForm">
@@ -66,71 +61,81 @@
         }
       }
 
-      document.getElementById('loginForm').addEventListener('submit', async function(event) {
-  event.preventDefault();
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
 
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  const button = document.querySelector('button[type="submit"]');
-  const originalText = button.textContent;
-  
-  const existingError = document.getElementById('error-message');
-  if (existingError) existingError.remove();
-  
-  button.textContent = 'Logging in...';
-  button.disabled = true;
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          const button = document.querySelector('button[type="submit"]');
+          const originalText = button.textContent;
 
-  try {
-    const response = await fetch('/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ username, password })
-    });
+          const existingError = document.getElementById("error-message");
+          if (existingError) existingError.remove();
 
-    const data = await response.json();
+          button.textContent = "Logging in...";
+          button.disabled = true;
 
-    if (response.ok) {
-      localStorage.setItem('token', data.token);
-      console.log("Token stored:", data.token);
-      window.location.href = '/shorten-url';
-    } else {
-      const errorDiv = document.createElement('div');
-      errorDiv.id = 'error-message';
-      errorDiv.textContent = data.message || 'Login failed';
-      
-      const form = document.getElementById('loginForm');
-      form.parentNode.insertBefore(errorDiv, form);
-      
-      setTimeout(() => {
-        if (document.getElementById('error-message')) {
-          document.getElementById('error-message').remove();
-        }
-      }, 5000);
-    }
-  } catch (error) {
-    console.error('Error logging in:', error);
-    
-    // Display error message
-    const errorDiv = document.createElement('div');
-    errorDiv.id = 'error-message';
-    errorDiv.textContent = 'An error occurred! Please try again';
-    
-    const form = document.getElementById('loginForm');
-    form.parentNode.insertBefore(errorDiv, form);
-    
-    setTimeout(() => {
-      if (document.getElementById('error-message')) {
-        document.getElementById('error-message').remove();
-      }
-    }, 5000);
-  } finally {
-    button.textContent = originalText;
-    button.disabled = false;
-  }
-});
+          try {
+            const response = await fetch("/auth/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              localStorage.setItem("token", data.token);
+              console.log("Token stored:", data.token);
+              window.location.href = "/shorten-url";
+            } else {
+              let errorMessage = data.message || "Login failed";
+              if (errorMessage.includes("username")) {
+                errorMessage =
+                  "Username not found! Please check your username or sign up";
+              } else if (errorMessage.includes("password")) {
+                errorMessage = "Your password is incorrect! Please try again";
+              }
+
+              const errorDiv = document.createElement("div");
+              errorDiv.id = "error-message";
+              errorDiv.textContent = errorMessage;
+
+              const form = document.getElementById("loginForm");
+              form.parentNode.insertBefore(errorDiv, form);
+
+              setTimeout(() => {
+                if (document.getElementById("error-message")) {
+                  document.getElementById("error-message").remove();
+                }
+              }, 6000);
+            }
+          } catch (error) {
+            console.error("Error logging in:", error);
+
+            // Display error message
+            const errorDiv = document.createElement("div");
+            errorDiv.id = "error-message";
+            errorDiv.textContent = "An error occurred! Please try again";
+
+            const form = document.getElementById("loginForm");
+            form.parentNode.insertBefore(errorDiv, form);
+
+            setTimeout(() => {
+              if (document.getElementById("error-message")) {
+                document.getElementById("error-message").remove();
+              }
+            }, 5000);
+          } finally {
+            button.textContent = originalText;
+            button.disabled = false;
+          }
+        });
     </script>
   </body>
 </html>

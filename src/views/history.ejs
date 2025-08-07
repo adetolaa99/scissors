@@ -45,7 +45,7 @@
               });
             } else {
               historyContainer.innerHTML =
-                "<p>No links found in your history.</p>";
+                "<p>No links found in your history...</p>";
             }
           } else {
             console.error("Error fetching history:", historyData.message);
@@ -55,7 +55,7 @@
         } catch (error) {
           console.error("Error loading link history:", error);
           document.getElementById("link-history").innerHTML =
-            "<p>An error occurred while loading history.</p>";
+            "<p>An error occurred while loading history!</p>";
         }
       });
     </script>

@@ -8,10 +8,14 @@
   </head>
 
   <body>
-    <h1>Sign Up</h1>
+    <h1>Welcome to Scissors</h1>
+    <p>
+      Your ultimate URL shortening platform. Sign up to shorten your URLs,
+      generate QR codes, and track link analytics easily.
+    </p>
 
     <% if (typeof error !== 'undefined' && error) { %>
-      <div id="error-message"><%= error %></div>
+    <div id="error-message"><%= error %></div>
     <% } %>
 
     <form action="/auth/signup" method="POST">

@@ -17,6 +17,13 @@ export class AuthController {
         });
       }
 
+      if (!username) {
+        return res.render("signup", {
+          error: "Username is required...",
+          user: req.user,
+        });
+      }
+
       if (!password || password.length < 6) {
         return res.render("signup", {
           error: "Password must be at least 6 characters long...",
@@ -31,7 +38,8 @@ export class AuthController {
 
       // Redirect to login with success message
       res.render("login", {
-        success: "Account created successfully! Please log in",
+        success:
+          "Account created successfully! Please log in with your details",
         user: req.user,
       });
     } catch (error) {
@@ -47,30 +55,72 @@ export class AuthController {
     passport.authenticate("local", (err: Error, user: UserType, info: any) => {
       if (err) {
         console.error("Login error:", err);
+
+        // For AJAX requests, return JSON error
+        if (
+          req.headers.accept &&
+          req.headers.accept.includes("application/json")
+        ) {
+          return res.status(500).json({
+            message: "Server error occurred... Please try again later",
+          });
+        }
+
         return res.render("login", {
-          error: "An error occurred during login! Please try again",
+          error: "Server error occurred... Please try again later",
           user: req.user,
         });
       }
+
       if (!user) {
+        let errorMessage = "Invalid username or password!";
+        if (info && info.message) {
+          if (info.message.includes("username")) {
+            errorMessage =
+              "Username not found! Please check your username or sign up";
+          } else if (info.message.includes("password")) {
+            errorMessage = "Incorrect password! Please try again";
+          }
+        }
+
+        // For AJAX requests, return JSON error
+        if (
+          req.headers.accept &&
+          req.headers.accept.includes("application/json")
+        ) {
+          return res.status(401).json({ message: errorMessage });
+        }
+
         return res.render("login", {
-          error: info.message || "Invalid username or password",
+          error: errorMessage,
           user: req.user,
         });
       }
+
       req.logIn(user, (err) => {
         if (err) {
           console.error("Session error:", err);
+
+          // For AJAX requests, return JSON
+          if (
+            req.headers.accept &&
+            req.headers.accept.includes("application/json")
+          ) {
+            return res.status(500).json({
+              message: "Login session error... Please try again",
+            });
+          }
+
           return res.render("login", {
-            error: "An error occurred during login! Please try again",
+            error: "Login session error... Please try again",
             user: req.user,
           });
         }
+
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!, {
           expiresIn: "1h",
         });
 
-        // For AJAX requests, return JSON
         if (
           req.headers.accept &&
           req.headers.accept.includes("application/json")

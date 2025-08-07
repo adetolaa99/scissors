@@ -64,18 +64,27 @@
 
             if (response.ok) {
               resultDiv.innerHTML = `
-          <div style="color: #28a745; background: rgba(40, 167, 69, 0.1); border: 1px solid rgba(40, 167, 69, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px;">
-            <p><strong>✅ Success!</strong></p>
-            <p>Shortened URL: <a href="${result.shortURL}" target="_blank" style="color: #007bff; font-weight: bold;">${result.shortURL}</a></p>
-            <button onclick="copyToClipboard('${result.shortURL}')" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Copy URL</button>
-          </div>
-        `;
+    <div class="result-success">
+      <p>Shortened URL: <a href="${result.shortURL}" target="_blank">${result.shortURL}</a></p>
+      <button class="copy-btn" onclick="copyToClipboard('${result.shortURL}')">📋 Copy URL</button>
+    </div>
+  `;
             } else {
+              let errorMsg =
+                result.error || result.message || "Unknown error occurred";
+              if (errorMsg.includes("Invalid URL")) {
+                errorMsg =
+                  "Please enter a valid URL (must include http:// or https://)";
+              } else if (errorMsg.includes("domain")) {
+                errorMsg =
+                  "Invalid custom domain... Please use the format: example.com";
+              }
+
               resultDiv.innerHTML = `
-          <div style="color: #e74c3c; background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px;">
-            <p><strong>❌ Error:</strong> ${result.error || result.message}</p>
-          </div>
-        `;
+    <div class="result-error">
+      <p><strong>❌ Error:</strong> ${errorMsg}</p>
+    </div>
+  `;
             }
           } catch (error) {
             console.error("Error shortening URL:", error);
