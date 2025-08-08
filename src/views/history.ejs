@@ -11,7 +11,10 @@
 
     <h1>Your Link History</h1>
 
-    <div id="link-history"></div>
+    <div
+      id="link-history"
+      style="width: 100%; max-width: 100%; padding: 0 10px"
+    ></div>
 
     <script>
       document.addEventListener("DOMContentLoaded", async function () {
@@ -35,12 +38,12 @@
                 const linkElement = document.createElement("div");
                 linkElement.classList.add("link-item");
                 linkElement.innerHTML = `
-            <p><strong>Short URL:</strong> <a href="${link.shortURL}" target="_blank">${link.shortURL}</a></p>
-            <p><strong>Original URL:</strong> ${link.longURL}</p>
-            <p><strong>Clicks:</strong> ${link.clicks}</p>
-            <p><strong>Date Created:</strong> ${new Date(link.createdAt).toLocaleString()}</p>
-            <hr>
-          `;
+      <p><strong>Short URL:</strong><br><a href="${link.shortURL}" target="_blank">${link.shortURL}</a></p>
+      <p><strong>Original URL:</strong><br><a href="${link.longURL}" target="_blank" style="word-break: break-all;">${link.longURL}</a></p>
+      <p><strong>Clicks:</strong> ${link.clicks}</p>
+      <p><strong>Date Created:</strong> ${new Date(link.createdAt).toLocaleString()}</p>
+      <hr>
+    `;
                 historyContainer.appendChild(linkElement);
               });
             } else {

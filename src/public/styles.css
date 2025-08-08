@@ -339,4 +339,92 @@ hr {
     padding: 8px 15px;
     font-size: 14px;
   }
+
+  .analytics-item,
+  .link-item {
+    padding: 15px;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .analytics-item p,
+  .link-item p {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+
+  .analytics-item a,
+  .link-item a {
+    word-break: break-all;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  #analytics-data,
+  #link-history {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .result-success,
+  .result-error {
+    padding: 15px;
+    font-size: 0.9rem;
+    word-wrap: break-word;
+  }
+
+  .result-success a,
+  .result-error a {
+    word-break: break-all;
+  }
+
+  .copy-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 5px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+  }
+
+  .navbar {
+    flex-direction: column;
+    gap: 8px;
+    padding: 15px;
+  }
+
+  .navbar a {
+    text-align: center;
+    width: 100%;
+    padding: 10px;
+  }
+
+  form,
+  #analytics-form {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .analytics-item,
+  .link-item {
+    padding: 12px;
+    font-size: 0.8rem;
+  }
+
+  input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
 }

@@ -47,6 +47,17 @@
           toggle.textContent = "🔒";
         }
       }
+
+      window.addEventListener("DOMContentLoaded", function () {
+        const errorMessage = document.getElementById("error-message");
+        if (errorMessage) {
+          setTimeout(() => {
+            if (document.getElementById("error-message")) {
+              document.getElementById("error-message").remove();
+            }
+          }, 6000);
+        }
+      });
     </script>
   </body>
 </html>
